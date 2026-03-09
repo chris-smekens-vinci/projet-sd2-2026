@@ -7,7 +7,7 @@ public class TestSimulator10 {
     public static void main(String[] args) {
         System.out.println("---------------------------------------------------------------");
         LocalTime start = LocalTime.now() ;
-        Graph graph = new Graph("nodes_10.csv","edges_10.csv");
+        Graph graph = new Graph("src/nodes_10.csv","src/edges_10.csv");
         LocalTime graphReady = LocalTime.now() ;
         Duration d = Duration.between(start,graphReady) ;
         System.out.println();
