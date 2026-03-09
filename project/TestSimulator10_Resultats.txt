@@ -1,0 +1,50 @@
+---------------------------------------------------------------
+
+Graphe prêt !
+Temps de chargement : 0m0s15625800ns
+
+---------------------------------------------------------------
+
+Temps de calcul pour la zone inondée : 0m0s0ns
+
+Zone inondée :
+--------------
+1) 3060525656 : altitude : 31.04
+2) 1132625530 : altitude : 30.21
+3) 3060525657 : altitude : 17.59
+4) 1132625492 : altitude : 19.33
+
+---------------------------------------------------------------
+
+Temps de calcul pour le chemin le plus court évitant la zone inondée : 0m0s2008700ns
+
+Chemin le plus court pour contourner la zone inondée :
+------------------------------------------------------
+1) 1132625517 | altitude : 32.46
+2) 1132625469 | altitude : 46.64
+3) 1132625495 | altitude : 26.8
+4) 1132625443 | altitude : 27.75
+
+---------------------------------------------------------------
+
+Temps de calcul pour la chronologie de la crue : 0m0s0ns
+
+Chronologie de la crue : 
+-------------------------
+1) 3060525656 | temps inondation : 0.0
+2) 3060525657 | temps inondation : 2.956282527881041
+3) 1132625530 | temps inondation : 707.8650602409654
+4) 1132625492 | temps inondation : 889.5013223211985
+
+---------------------------------------------------------------
+
+temps de calcul pour le chemin d'évacuation le plus court : 0m0s0ns
+
+Chemin d'évacuation le plus court :
+-----------------------------------
+1) 1132625517 | altitude : 32.46
+2) 1132625469 | altitude : 46.64
+3) 1132625495 | altitude : 26.8
+4) 1132625443 | altitude : 27.75
+
+---------------------------------------------------------------
