@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class TestSimulator1000000b {
     public static void main(String[] args) {
+        double epsilon = 0.1 ;
+        double k = 0.05 ;
         System.out.println("---------------------------------------------------------------");
         LocalTime start = LocalTime.now() ;
         Graph graph = new Graph("src/nodes_1000000.csv","src/edges_1000000.csv");
@@ -17,7 +19,7 @@ public class TestSimulator1000000b {
         System.out.println("---------------------------------------------------------------");
         long[] idsDepartCrue = {3060525656l,12974725584l,1098529543} ;
         start = LocalTime.now() ;
-        Localisation[] zoneInondee = graph.determinerZoneInondee(idsDepartCrue);
+        Localisation[] zoneInondee = graph.determinerZoneInondee(idsDepartCrue,epsilon);
         LocalTime tempCalculZoneInondée = LocalTime.now() ;
         d = Duration.between(start, tempCalculZoneInondée);
         System.out.println();
@@ -50,7 +52,7 @@ public class TestSimulator1000000b {
         System.out.println("---------------------------------------------------------------");
         System.out.println();
         start = LocalTime.now() ;
-        Map<Localisation,Double> tFlood =  graph.determinerChronologieDeLaCrue(idsDepartCrue,0);
+        Map<Localisation,Double> tFlood =  graph.determinerChronologieDeLaCrue(idsDepartCrue,0,k);
         LocalTime tempsDeterminationChronologieDeLaCrue = LocalTime.now() ;
         d = Duration.between(start,tempsDeterminationChronologieDeLaCrue);
         System.out.println("Temps de calcul pour la chronologie de la crue : "+d.toMinutes()+"m"+d.toSecondsPart()+"s"+d.toNanosPart()+"ns");
