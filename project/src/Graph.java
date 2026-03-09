@@ -23,8 +23,10 @@ public class Graph {
   // Adjacency list: id -> outgoing edges
   private final Map<Long, List<Edge>> adj = new HashMap<>();
 
-  // Default epsilon (tolerance) for flood propagation, can be changed or parameterized
+  // Default epsilon (tolerance) for flood propagation
   private final double epsilon = 0.0;
+  // Default k factor for water speed update
+  private static final double K_DEFAULT = 0.05;
 
   /**
    * localisations: path to nodes CSV (nodes_X.csv) roads: path to edges CSV (edges_X.csv)
@@ -68,28 +70,30 @@ public class Graph {
         long target = Long.parseLong(parts[1]);
         double dist = Double.parseDouble(parts[2]);
         String streetName = parts[3];
-        // assuming edges file already contains both directions if needed
-        adj.computeIfAbsent(source, k -> new ArrayList<>())
-            .add(new Edge(target, dist, streetName));
+        adj.computeIfAbsent(source, k -> new ArrayList<>()).add(new Edge(target, dist, streetName));
       }
     } catch (IOException e) {
       throw new RuntimeException("Error loading edges from " + file, e);
     }
   }
 
+  // -------------------------------------------------------------------------
+  // Algorithme 1 : Simulation de la Crue (Phase 1 - static)
+  // -------------------------------------------------------------------------
+
   /**
-   * Algorithme 1 : Simulation de la Crue (phase statique). idsOrigin: starting flooded nodes ids.
-   * epsilon: tolerance for propagation. Returns an array of Localisation in the order they are
-   * flooded (BFS-like).
+   * Determines the flooded zone via BFS. Water propagates from X to neighbour Y if Alt(Y) <= Alt(X)
+   * + epsilon.
+   *
+   * @param idsOrigin starting flood node ids
+   * @param epsilon   tolerance in metres
+   * @return array of flooded Localisations in BFS visitation order
    */
   public Localisation[] determinerZoneInondee(long[] idsOrigin, double epsilon) {
-    // BFS/DFS on directed graph with propagation condition:
-    // Alt(Y) <= Alt(X) + epsilon
     Set<Long> visited = new HashSet<>();
     Deque<Long> queue = new ArrayDeque<>();
     List<Localisation> order = new ArrayList<>();
 
-    // initialize queue with origins
     for (long id : idsOrigin) {
       if (!nodes.containsKey(id)) {
         continue;
@@ -117,7 +121,6 @@ public class Graph {
         if (neigh == null) {
           continue;
         }
-
         if (neigh.getAltitude() <= current.getAltitude() + epsilon) {
           visited.add(neighId);
           queue.add(neighId);
@@ -128,20 +131,29 @@ public class Graph {
     return order.toArray(new Localisation[0]);
   }
 
-  // Convenience overload using default epsilon
+  /**
+   * Convenience overload using default epsilon.
+   */
   public Localisation[] determinerZoneInondee(long[] idsOrigin) {
     return determinerZoneInondee(idsOrigin, this.epsilon);
   }
 
+  // -------------------------------------------------------------------------
+  // Algorithme 2 : Navigation de Secours (Phase 1 - static)
+  // -------------------------------------------------------------------------
+
   /**
-   * Algorithme 2 : Navigation de Secours. Find shortest path (in number of streets) from idOrigin
-   * to idDestination, avoiding all nodes in floodedZone. Returns a Deque of Localisation from
-   * origin to destination.
+   * Finds the shortest path (in number of streets) from idOrigin to idDestination, avoiding all
+   * nodes in floodedZone. Uses BFS on the unweighted graph.
+   *
+   * @param idOrigin      start node id
+   * @param idDestination destination node id
+   * @param floodedZone   nodes to avoid
+   * @return Deque of Localisations from origin to destination (empty if no path)
    */
   public Deque<Localisation> trouverCheminLePlusCourtPourContournerLaZoneInondee(long idOrigin,
-      long idDestination,
-      Localisation[] floodedZone) {
-    // Build set of flooded ids for O(1) checks
+      long idDestination, Localisation[] floodedZone) {
+
     Set<Long> flooded = new HashSet<>();
     if (floodedZone != null) {
       for (Localisation l : floodedZone) {
@@ -149,15 +161,13 @@ public class Graph {
       }
     }
 
-    // Standard BFS shortest path in unweighted graph
-    Deque<Long> queue = new ArrayDeque<>();
-    Map<Long, Long> parent = new HashMap<>();
-    Set<Long> visited = new HashSet<>();
-
-    // If origin or destination is flooded, path is impossible
     if (flooded.contains(idOrigin) || flooded.contains(idDestination)) {
       return new ArrayDeque<>();
     }
+
+    Deque<Long> queue = new ArrayDeque<>();
+    Map<Long, Long> parent = new HashMap<>();
+    Set<Long> visited = new HashSet<>();
 
     queue.add(idOrigin);
     visited.add(idOrigin);
@@ -165,7 +175,8 @@ public class Graph {
 
     boolean found = false;
 
-    while (!queue.isEmpty() && !found) {
+    outer:
+    while (!queue.isEmpty()) {
       long currentId = queue.poll();
       List<Edge> edges = adj.get(currentId);
       if (edges == null) {
@@ -174,10 +185,7 @@ public class Graph {
 
       for (Edge e : edges) {
         long neighId = e.targetId;
-        if (visited.contains(neighId)) {
-          continue;
-        }
-        if (flooded.contains(neighId)) {
+        if (visited.contains(neighId) || flooded.contains(neighId)) {
           continue;
         }
 
@@ -187,17 +195,16 @@ public class Graph {
 
         if (neighId == idDestination) {
           found = true;
-          break;
+          break outer;
         }
       }
     }
 
     Deque<Localisation> path = new ArrayDeque<>();
     if (!found) {
-      return path; // empty if no path
+      return path;
     }
 
-    // Reconstruct path from destination to origin using parent map
     Long current = idDestination;
     while (current != null) {
       Localisation loc = nodes.get(current);
@@ -210,17 +217,207 @@ public class Graph {
     return path;
   }
 
-  // Placeholders for Phase 2 (you can implement later)
+  // -------------------------------------------------------------------------
+  // Algorithme 3 : Chronologie de la Crue (Phase 2 - temporal)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Computes the precise flood arrival time tFlood[node] for every reachable node. Uses Dijkstra:
+   * edge weight = distance / vWater (travel time). Water speed updates as: vWater(p2) = vWater(p1)
+   * + k * slope(p1->p2). Propagation stops on an arc when the resulting speed is <= 0.
+   *
+   * @param idsOrigin  starting flood node ids (flooded at t=0 with speed vWaterInit)
+   * @param vWaterInit initial water speed (m/s)
+   * @param k          acceleration factor (default 0.05)
+   * @return Map from Localisation to flood time in seconds
+   */
   public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin,
-      double vWaterInit) {
-    throw new UnsupportedOperationException("Phase 2 not implemented yet.");
+      double vWaterInit, double k) {
+
+    // dist[id] = earliest time water reaches node id
+    Map<Long, Double> dist = new HashMap<>();
+    // vAtNode[id] = water speed when reaching node id (used to propagate further)
+    Map<Long, Double> vAtNode = new HashMap<>();
+
+    // Priority queue: (time, nodeId, waterSpeedAtNode)
+    // We store speed per entry because the same node might be reached with different speeds
+    // but we only care about the fastest (minimum time) arrival.
+    PriorityQueue<double[]> pq = new PriorityQueue<>(Comparator.comparingDouble(a -> a[0]));
+
+    for (long id : idsOrigin) {
+      if (!nodes.containsKey(id)) {
+        continue;
+      }
+      if (!dist.containsKey(id) || dist.get(id) > 0.0) {
+        dist.put(id, 0.0);
+        vAtNode.put(id, vWaterInit);
+        pq.offer(new double[]{0.0, id, vWaterInit});
+      }
+    }
+
+    while (!pq.isEmpty()) {
+      double[] top = pq.poll();
+      double time = top[0];
+      long currentId = (long) top[1];
+      double vCurrent = top[2];
+
+      // Skip if we already found a faster route
+      Double best = dist.get(currentId);
+      if (best != null && time > best) {
+        continue;
+      }
+
+      Localisation current = nodes.get(currentId);
+      List<Edge> edges = adj.get(currentId);
+      if (edges == null) {
+        continue;
+      }
+
+      for (Edge e : edges) {
+        long neighId = e.targetId;
+        Localisation neigh = nodes.get(neighId);
+        if (neigh == null) {
+          continue;
+        }
+
+        // Slope S = (Alt(current) - Alt(neigh)) / distance
+        double slope = (current.getAltitude() - neigh.getAltitude()) / e.dist;
+        // Water speed at neighbour
+        double vNext = vCurrent + k * slope;
+
+        // Water stops if speed is non-positive
+        if (vNext <= 0) {
+          continue;
+        }
+
+        // Travel time uses vNext (speed at destination node)
+        double travelTime = e.dist / vNext;
+        double newTime = time + travelTime;
+
+        Double prevTime = dist.get(neighId);
+        if (prevTime == null || newTime < prevTime) {
+          dist.put(neighId, newTime);
+          vAtNode.put(neighId, vNext);
+          pq.offer(new double[]{newTime, neighId, vNext});
+        }
+      }
+    }
+
+    // Build result map preserving insertion order (ordered by flood time)
+    Map<Localisation, Double> result = new LinkedHashMap<>();
+    dist.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach(entry -> {
+      Localisation loc = nodes.get(entry.getKey());
+      if (loc != null) {
+        result.put(loc, entry.getValue());
+      }
+    });
+
+    return result;
   }
 
+  /**
+   * Convenience overload using default k = 0.05. Matches the signature called by the provided test
+   * files.
+   */
+  public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin,
+      double vWaterInit) {
+    return determinerChronologieDeLaCrue(idsOrigin, vWaterInit, K_DEFAULT);
+  }
 
-  public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idOrigin,
-      long idEvacuation,
-      double vVehicule,
-      Map<Localisation, Double> tFlood) {
-    throw new UnsupportedOperationException("Phase 2 not implemented yet.");
+  // -------------------------------------------------------------------------
+  // Algorithme 4 : Évacuation Dynamique (Phase 2 - temporal)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Finds the fastest evacuation path from idDepart to idEvacuation, avoiding nodes that will be
+   * flooded before the vehicle arrives. Uses Dijkstra: edge weight = distance / vVehicule. A node
+   * neighbour is forbidden if t_arrival > tFlood[neighbour].
+   *
+   * @param idDepart     starting node id (vehicle departs at t=0)
+   * @param idEvacuation destination node id
+   * @param vVehicule    constant vehicle speed (m/s)
+   * @param tFlood       flood chronology from Algorithm 3
+   * @return Deque of Localisations representing the fastest safe path (empty if none)
+   */
+  public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idDepart, long idEvacuation,
+      double vVehicule, Map<Localisation, Double> tFlood) {
+
+    // Build a fast lookup: node id -> flood time (Double.MAX_VALUE if not flooded)
+    Map<Long, Double> floodTime = new HashMap<>();
+    for (Map.Entry<Localisation, Double> entry : tFlood.entrySet()) {
+      floodTime.put(entry.getKey().getId(), entry.getValue());
+    }
+
+    // Dijkstra: (time, nodeId)
+    Map<Long, Double> dist = new HashMap<>();
+    Map<Long, Long> parent = new HashMap<>();
+
+    PriorityQueue<double[]> pq = new PriorityQueue<>(Comparator.comparingDouble(a -> a[0]));
+
+    dist.put(idDepart, 0.0);
+    parent.put(idDepart, null);
+    pq.offer(new double[]{0.0, idDepart});
+
+    boolean found = false;
+
+    while (!pq.isEmpty()) {
+      double[] top = pq.poll();
+      double time = top[0];
+      long currentId = (long) top[1];
+
+      if (currentId == idEvacuation) {
+        found = true;
+        break;
+      }
+
+      Double best = dist.get(currentId);
+      if (best != null && time > best) {
+        continue;
+      }
+
+      List<Edge> edges = adj.get(currentId);
+      if (edges == null) {
+        continue;
+      }
+
+      for (Edge e : edges) {
+        long neighId = e.targetId;
+        if (!nodes.containsKey(neighId)) {
+          continue;
+        }
+
+        double travelTime = e.dist / vVehicule;
+        double arrivalTime = time + travelTime;
+
+        // Cannot use this node if it will be flooded before we arrive
+        Double flood = floodTime.get(neighId);
+        if (flood != null && arrivalTime > flood) {
+          continue;
+        }
+
+        Double prevTime = dist.get(neighId);
+        if (prevTime == null || arrivalTime < prevTime) {
+          dist.put(neighId, arrivalTime);
+          parent.put(neighId, currentId);
+          pq.offer(new double[]{arrivalTime, neighId});
+        }
+      }
+    }
+
+    Deque<Localisation> path = new ArrayDeque<>();
+    if (!found) {
+      return path;
+    }
+
+    Long current = idEvacuation;
+    while (current != null) {
+      Localisation loc = nodes.get(current);
+      if (loc != null) {
+        path.addFirst(loc);
+      }
+      current = parent.get(current);
+    }
+
+    return path;
   }
 }
