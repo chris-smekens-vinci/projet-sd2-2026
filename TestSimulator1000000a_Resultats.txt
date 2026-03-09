@@ -1,0 +1,135 @@
+---------------------------------------------------------------
+
+Graphe prêt !
+Temps de chargement : 0m3s623394300ns
+
+---------------------------------------------------------------
+
+Temps de calcul pour la zone inondée : 0m0s54301300ns
+
+Zone inondée :
+--------------
+1) 3060525656 : altitude : 26.36
+2) 12974725584 : altitude : 37.17
+3) 1098529543 : altitude : 49.02
+4) 1132625530 : altitude : 15.98
+5) 324434864 : altitude : 18.73
+6) 1132625429 : altitude : 14.85
+7) 3056518844 : altitude : 36.12
+8) 615421598 : altitude : 38.67
+9) 3056518843 : altitude : 21.04
+10) 615421597 : altitude : 19.41
+11) 1132625428 : altitude : 25.94
+12) 1226107463 : altitude : 12.93
+13) 3056518841 : altitude : 20.73
+
+---------------------------------------------------------------
+
+Temps de calcul pour le chemin le plus court évitant la zone inondée : 0m0s62914500ns
+
+Chemin le plus court pour contourner la zone inondée :
+------------------------------------------------------
+1) 1132625517 | altitude : 29.44
+2) 1132625469 | altitude : 45.81
+3) 1132625418 | altitude : 13.47
+4) 12974725586 | altitude : 49.25
+5) 5437074483 | altitude : 20.16
+6) 12974725587 | altitude : 6.38
+7) 16658368 | altitude : 35.68
+8) 12974725588 | altitude : 47.59
+9) 12974725589 | altitude : 12.87
+10) 5437074482 | altitude : 21.75
+11) 12974725590 | altitude : 39.32
+12) 16571284 | altitude : 28.08
+13) 1088372913 | altitude : 28.71
+14) 1098529539 | altitude : 40.72
+15) 1098529545 | altitude : 16.87
+16) 203236151 | altitude : 40.29
+17) 5435644349 | altitude : 41.28
+18) 11862904190 | altitude : 9.66
+19) 11862904189 | altitude : 42.44
+20) 11863011397 | altitude : 18.8
+
+---------------------------------------------------------------
+
+Temps de calcul pour la chronologie de la crue : 0m0s31259400ns
+
+Chronologie de la crue : 
+-------------------------
+1) 1098529543 | temps inondation : 0.0
+2) 3060525656 | temps inondation : 0.0
+3) 12974725584 | temps inondation : 0.0
+4) 324434864 | temps inondation : 6.670715835140997
+5) 11865635921 | temps inondation : 21.186234376793205
+6) 3056167886 | temps inondation : 26.45624086923411
+7) 1132625527 | temps inondation : 30.023691992314735
+8) 3056167887 | temps inondation : 47.812297840758106
+9) 1132625530 | temps inondation : 56.60192678227361
+10) 324434865 | temps inondation : 57.07088728870908
+11) 1132625429 | temps inondation : 70.30822358794263
+12) 1132625471 | temps inondation : 74.9031319582926
+13) 1352416334 | temps inondation : 76.33933951029668
+14) 3058147540 | temps inondation : 81.84198459612341
+15) 1132625505 | temps inondation : 86.00615359804499
+16) 3058147551 | temps inondation : 86.50564551441124
+17) 3058147539 | temps inondation : 93.58134643275926
+18) 3058147542 | temps inondation : 100.32242590803229
+19) 3058147541 | temps inondation : 101.43569694290329
+20) 3058147544 | temps inondation : 122.34867834638911
+21) 615421598 | temps inondation : 122.43787439613524
+22) 1132625444 | temps inondation : 125.16509875497113
+23) 3058147543 | temps inondation : 125.34174011630282
+24) 1352416330 | temps inondation : 132.1340264479729
+25) 3056518849 | temps inondation : 133.49030102953546
+26) 3058147546 | temps inondation : 139.6104069885137
+27) 3056518851 | temps inondation : 140.84266811433474
+28) 3056518852 | temps inondation : 143.0321113534178
+29) 3058147545 | temps inondation : 143.79132302997033
+30) 1088372857 | temps inondation : 147.0705012760371
+31) 3056518853 | temps inondation : 148.76311951142728
+32) 3056518854 | temps inondation : 150.27249911512385
+33) 1132625526 | temps inondation : 155.191853381357
+34) 3056518846 | temps inondation : 155.2080309325575
+35) 3056518847 | temps inondation : 157.49564049156027
+36) 3056518848 | temps inondation : 158.63807412285607
+37) 615422306 | temps inondation : 175.83704067589866
+38) 3056518845 | temps inondation : 183.30782316614128
+39) 1132625492 | temps inondation : 201.21993356346286
+40) 615421597 | temps inondation : 327.252038345351
+41) 1226107463 | temps inondation : 466.9564992305893
+42) 1132625428 | temps inondation : 496.86696212783875
+43) 1226107497 | temps inondation : 588.0910553529636
+44) 615421595 | temps inondation : 608.9612377869781
+45) 3056518841 | temps inondation : 712.0941480643684
+46) 3056518844 | temps inondation : 815.1703875968989
+47) 3056518843 | temps inondation : 819.0254868618961
+48) 1132625443 | temps inondation : 879.659750869885
+
+---------------------------------------------------------------
+
+temps de calcul pour le chemin d'évacuation le plus court : 0m0s31250700ns
+
+Chemin d'évacuation le plus court :
+-----------------------------------
+1) 1132625517 | altitude : 29.44
+2) 1132625469 | altitude : 45.81
+3) 1132625418 | altitude : 13.47
+4) 12974725586 | altitude : 49.25
+5) 5437074483 | altitude : 20.16
+6) 12974725587 | altitude : 6.38
+7) 16658368 | altitude : 35.68
+8) 12974725588 | altitude : 47.59
+9) 12974725589 | altitude : 12.87
+10) 5437074482 | altitude : 21.75
+11) 12974725590 | altitude : 39.32
+12) 16571284 | altitude : 28.08
+13) 1088372913 | altitude : 28.71
+14) 1098529539 | altitude : 40.72
+15) 1098529545 | altitude : 16.87
+16) 203236151 | altitude : 40.29
+17) 5435644349 | altitude : 41.28
+18) 11862904190 | altitude : 9.66
+19) 11862904189 | altitude : 42.44
+20) 11863011397 | altitude : 18.8
+
+---------------------------------------------------------------
