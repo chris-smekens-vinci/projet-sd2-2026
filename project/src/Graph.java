@@ -18,14 +18,12 @@ public class Graph {
     }
   }
 
-  // Map id -> localisation
   private final Map<Long, Localisation> nodes = new HashMap<>();
-  // Adjacency list: id -> outgoing edges
+
   private final Map<Long, List<Edge>> adj = new HashMap<>();
 
-  // Default epsilon (tolerance) for flood propagation
   private final double epsilon = 0.0;
-  // Default k factor for water speed update
+
   private static final double K_DEFAULT = 0.05;
 
   /**
@@ -38,7 +36,7 @@ public class Graph {
 
   private void loadNodes(String file) {
     try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-      String line = br.readLine(); // header
+      String line = br.readLine();
       while ((line = br.readLine()) != null) {
         if (line.isEmpty()) {
           continue;
@@ -60,7 +58,7 @@ public class Graph {
 
   private void loadEdges(String file) {
     try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-      String line = br.readLine(); // header
+      String line = br.readLine();
       while ((line = br.readLine()) != null) {
         if (line.isEmpty()) {
           continue;
@@ -76,10 +74,6 @@ public class Graph {
       throw new RuntimeException("Error loading edges from " + file, e);
     }
   }
-
-  // -------------------------------------------------------------------------
-  // Algorithme 1 : Simulation de la Crue (Phase 1 - static)
-  // -------------------------------------------------------------------------
 
   /**
    * Determines the flooded zone via BFS. Water propagates from X to neighbour Y if Alt(Y) <= Alt(X)
@@ -137,10 +131,6 @@ public class Graph {
   public Localisation[] determinerZoneInondee(long[] idsOrigin) {
     return determinerZoneInondee(idsOrigin, this.epsilon);
   }
-
-  // -------------------------------------------------------------------------
-  // Algorithme 2 : Navigation de Secours (Phase 1 - static)
-  // -------------------------------------------------------------------------
 
   /**
    * Finds the shortest path (in number of streets) from idOrigin to idDestination, avoiding all
@@ -217,10 +207,6 @@ public class Graph {
     return path;
   }
 
-  // -------------------------------------------------------------------------
-  // Algorithme 3 : Chronologie de la Crue (Phase 2 - temporal)
-  // -------------------------------------------------------------------------
-
   /**
    * Computes the precise flood arrival time tFlood[node] for every reachable node. Uses Dijkstra:
    * edge weight = distance / vWater (travel time). Water speed updates as: vWater(p2) = vWater(p1)
@@ -234,14 +220,10 @@ public class Graph {
   public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin,
       double vWaterInit, double k) {
 
-    // dist[id] = earliest time water reaches node id
     Map<Long, Double> dist = new HashMap<>();
-    // vAtNode[id] = water speed when reaching node id (used to propagate further)
+
     Map<Long, Double> vAtNode = new HashMap<>();
 
-    // Priority queue: (time, nodeId, waterSpeedAtNode)
-    // We store speed per entry because the same node might be reached with different speeds
-    // but we only care about the fastest (minimum time) arrival.
     PriorityQueue<double[]> pq = new PriorityQueue<>(Comparator.comparingDouble(a -> a[0]));
 
     for (long id : idsOrigin) {
@@ -261,7 +243,6 @@ public class Graph {
       long currentId = (long) top[1];
       double vCurrent = top[2];
 
-      // Skip if we already found a faster route
       Double best = dist.get(currentId);
       if (best != null && time > best) {
         continue;
@@ -280,17 +261,14 @@ public class Graph {
           continue;
         }
 
-        // Slope S = (Alt(current) - Alt(neigh)) / distance
         double slope = (current.getAltitude() - neigh.getAltitude()) / e.dist;
-        // Water speed at neighbour
+
         double vNext = vCurrent + k * slope;
 
-        // Water stops if speed is non-positive
         if (vNext <= 0) {
           continue;
         }
 
-        // Travel time uses vNext (speed at destination node)
         double travelTime = e.dist / vNext;
         double newTime = time + travelTime;
 
@@ -303,7 +281,6 @@ public class Graph {
       }
     }
 
-    // Build result map preserving insertion order (ordered by flood time)
     Map<Localisation, Double> result = new LinkedHashMap<>();
     dist.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach(entry -> {
       Localisation loc = nodes.get(entry.getKey());
@@ -324,9 +301,6 @@ public class Graph {
     return determinerChronologieDeLaCrue(idsOrigin, vWaterInit, K_DEFAULT);
   }
 
-  // -------------------------------------------------------------------------
-  // Algorithme 4 : Évacuation Dynamique (Phase 2 - temporal)
-  // -------------------------------------------------------------------------
 
   /**
    * Finds the fastest evacuation path from idDepart to idEvacuation, avoiding nodes that will be
@@ -342,13 +316,11 @@ public class Graph {
   public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idDepart, long idEvacuation,
       double vVehicule, Map<Localisation, Double> tFlood) {
 
-    // Build a fast lookup: node id -> flood time (Double.MAX_VALUE if not flooded)
     Map<Long, Double> floodTime = new HashMap<>();
     for (Map.Entry<Localisation, Double> entry : tFlood.entrySet()) {
       floodTime.put(entry.getKey().getId(), entry.getValue());
     }
 
-    // Dijkstra: (time, nodeId)
     Map<Long, Double> dist = new HashMap<>();
     Map<Long, Long> parent = new HashMap<>();
 
@@ -388,8 +360,7 @@ public class Graph {
 
         double travelTime = e.dist / vVehicule;
         double arrivalTime = time + travelTime;
-
-        // Cannot use this node if it will be flooded before we arrive
+        
         Double flood = floodTime.get(neighId);
         if (flood != null && arrivalTime > flood) {
           continue;
