@@ -72,6 +72,7 @@ public class Graph {
     }
   }
 
+  // Algo 1
   public Localisation[] determinerZoneInondee(long[] idsOrigin, double epsilon) {
     Set<Long> visited = new HashSet<>();
     Deque<Long> queue = new ArrayDeque<>();
@@ -118,6 +119,7 @@ public class Graph {
     return determinerZoneInondee(idsOrigin, this.epsilon);
   }
 
+  // Algo 2
   public Deque<Localisation> trouverCheminLePlusCourtPourContournerLaZoneInondee(long idOrigin,
       long idDestination, Localisation[] floodedZone) {
 
@@ -184,6 +186,7 @@ public class Graph {
     return path;
   }
 
+  // Algo 3
   public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin,
       double vWaterInit, double k) {
 
@@ -263,7 +266,8 @@ public class Graph {
       double vWaterInit) {
     return determinerChronologieDeLaCrue(idsOrigin, vWaterInit, K_DEFAULT);
   }
-  
+
+  // Algo 4
   public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idDepart, long idEvacuation,
       double vVehicule, Map<Localisation, Double> tFlood) {
 
