@@ -26,9 +26,6 @@ public class Graph {
 
   private static final double K_DEFAULT = 0.05;
 
-  /**
-   * localisations: path to nodes CSV (nodes_X.csv) roads: path to edges CSV (edges_X.csv)
-   */
   public Graph(String localisations, String roads) {
     loadNodes(localisations);
     loadEdges(roads);
@@ -75,14 +72,6 @@ public class Graph {
     }
   }
 
-  /**
-   * Determines the flooded zone via BFS. Water propagates from X to neighbour Y if Alt(Y) <= Alt(X)
-   * + epsilon.
-   *
-   * @param idsOrigin starting flood node ids
-   * @param epsilon   tolerance in metres
-   * @return array of flooded Localisations in BFS visitation order
-   */
   public Localisation[] determinerZoneInondee(long[] idsOrigin, double epsilon) {
     Set<Long> visited = new HashSet<>();
     Deque<Long> queue = new ArrayDeque<>();
@@ -125,22 +114,10 @@ public class Graph {
     return order.toArray(new Localisation[0]);
   }
 
-  /**
-   * Convenience overload using default epsilon.
-   */
   public Localisation[] determinerZoneInondee(long[] idsOrigin) {
     return determinerZoneInondee(idsOrigin, this.epsilon);
   }
 
-  /**
-   * Finds the shortest path (in number of streets) from idOrigin to idDestination, avoiding all
-   * nodes in floodedZone. Uses BFS on the unweighted graph.
-   *
-   * @param idOrigin      start node id
-   * @param idDestination destination node id
-   * @param floodedZone   nodes to avoid
-   * @return Deque of Localisations from origin to destination (empty if no path)
-   */
   public Deque<Localisation> trouverCheminLePlusCourtPourContournerLaZoneInondee(long idOrigin,
       long idDestination, Localisation[] floodedZone) {
 
@@ -207,16 +184,6 @@ public class Graph {
     return path;
   }
 
-  /**
-   * Computes the precise flood arrival time tFlood[node] for every reachable node. Uses Dijkstra:
-   * edge weight = distance / vWater (travel time). Water speed updates as: vWater(p2) = vWater(p1)
-   * + k * slope(p1->p2). Propagation stops on an arc when the resulting speed is <= 0.
-   *
-   * @param idsOrigin  starting flood node ids (flooded at t=0 with speed vWaterInit)
-   * @param vWaterInit initial water speed (m/s)
-   * @param k          acceleration factor (default 0.05)
-   * @return Map from Localisation to flood time in seconds
-   */
   public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin,
       double vWaterInit, double k) {
 
@@ -292,27 +259,11 @@ public class Graph {
     return result;
   }
 
-  /**
-   * Convenience overload using default k = 0.05. Matches the signature called by the provided test
-   * files.
-   */
   public Map<Localisation, Double> determinerChronologieDeLaCrue(long[] idsOrigin,
       double vWaterInit) {
     return determinerChronologieDeLaCrue(idsOrigin, vWaterInit, K_DEFAULT);
   }
-
-
-  /**
-   * Finds the fastest evacuation path from idDepart to idEvacuation, avoiding nodes that will be
-   * flooded before the vehicle arrives. Uses Dijkstra: edge weight = distance / vVehicule. A node
-   * neighbour is forbidden if t_arrival > tFlood[neighbour].
-   *
-   * @param idDepart     starting node id (vehicle departs at t=0)
-   * @param idEvacuation destination node id
-   * @param vVehicule    constant vehicle speed (m/s)
-   * @param tFlood       flood chronology from Algorithm 3
-   * @return Deque of Localisations representing the fastest safe path (empty if none)
-   */
+  
   public Deque<Localisation> trouverCheminDEvacuationLePlusCourt(long idDepart, long idEvacuation,
       double vVehicule, Map<Localisation, Double> tFlood) {
 
